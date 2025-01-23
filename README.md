@@ -1,2 +1,2 @@
 # Precios.github.io
-Conversor de precios de Irregular Recorda
+Conversor de precios de Irregular Records

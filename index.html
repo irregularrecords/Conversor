@@ -10,7 +10,7 @@
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
-            background-color: black;
+            background-color: #1f0000;
             color: #F06277; /* Rosa del logo */
         }
 		input {
@@ -18,10 +18,14 @@
 			padding: 10px;
 			font-size: 16px;
 			text-transform: uppercase; /* Forzar mayúsculas */
-			color: black;
-			background-color: black;
+			color: #F06277;
+			background-color: #1f0000;
 			border: 3px solid #F06277;  /* Borde de 2px de grosor y color #F06277 */
 			border-radius: 25px;         /* Bordes redondeados con radio de 10px */
+		}
+		
+		input:focus {
+			outline: none;  /* Elimina el borde blanco cuando el campo está enfocado */
 		}
         input::placeholder {
             color: #F06277; /* Placeholder rosa */
@@ -67,23 +71,56 @@
     };
 
     function convertInput() {
-        const input = document.getElementById("input").value.toLowerCase();
+        const input = document.getElementById("input").value.trim().toLowerCase();
         const output = document.getElementById("output");
 
-        // Manejo de suma (e+r o er)
-        const sum = input.split(/[+\s]/).reduce((total, part) => {
-            let subtotal = 0.000;
-            for (const char of part) {
-                if (valores[char] !== undefined) {
-                    subtotal += valores[char];
+        // Si el input es un número
+        if (!isNaN(input) && input !== "") {
+            const num = parseFloat(input);
+            output.textContent = getLettersFromNumber(num);
+        } else {
+            // Manejo de suma (e+r o er)
+            const sum = input.split(/[+\s]/).reduce((total, part) => {
+                let subtotal = 0.000;
+                for (const char of part) {
+                    if (valores[char] !== undefined) {
+                        subtotal += valores[char];
+                    }
                 }
-            }
-            return total + subtotal;
-        }, 0.000);
+                return total + subtotal;
+            }, 0.000);
 
-        // Verifica si el resultado es válido
-        output.textContent = `$${sum.toFixed(3) || "Entrada no válida"}`;
+            // Verifica si el resultado es válido
+            output.textContent = `$${sum.toFixed(3) || "Entrada no válida"}`;
+        }
+    }
+
+    // Función para obtener las letras a partir de un número
+    function getLettersFromNumber(num) {
+        let remainingValue = num;
+        let result = [];
+
+        // Ordenar las letras por valor descendente
+        const sortedValues = Object.entries(valores).sort((a, b) => b[1] - a[1]);
+
+        // Buscar las letras que suman el número
+        for (const [letter, value] of sortedValues) {
+            if (remainingValue >= value) {
+                result.push(letter);
+                remainingValue -= value;
+            }
+            if (remainingValue === 0) break;
+        }
+
+        // Si el valor restante no es 0, significa que no se pudo encontrar una combinación exacta
+        if (remainingValue !== 0) {
+            return "No es posible";
+        }
+
+        // Devuelve la combinación más corta posible, y las letras siempre en mayúsculas
+        return result.join('').toUpperCase();  // Asegura que las letras estén en mayúsculas
     }
 </script>
+
 </body>
 </html>

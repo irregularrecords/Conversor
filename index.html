@@ -5,58 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversor Letra / Número</title>
     <style>
+        /* Estilos generales */
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
-            background-color: #1f0000;
             color: #F06277; /* Rosa del logo */
+            overflow: hidden; /* Evita el scroll */
+            position: relative;
         }
+
+        /* Fondo tipo Matrix */
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Lo envía al fondo */
+            background-color: black; /* Fondo negro */
+        }
+
+        /* Estilos del contenido */
+        .content {
+            position: relative;
+            z-index: 1; /* Asegura que el contenido esté sobre el fondo */
+        }
+
         input {
             margin: 10px;
             padding: 10px;
             font-size: 16px;
             text-transform: uppercase; /* Forzar mayúsculas */
             color: #F06277;
-            background-color: #1f0000;
-            border: 3px solid #F06277;  /* Borde de 2px de grosor y color #F06277 */
-            border-radius: 25px;         /* Bordes redondeados con radio de 10px */
+            background-color: transparent;
+            border: 3px solid #F06277;
+            border-radius: 25px;
         }
+
         input:focus {
-            outline: none;  /* Elimina el borde blanco cuando el campo está enfocado */
+            outline: none;
         }
+
         input::placeholder {
-            color: #F06277; /* Placeholder rosa */
+            color: #F06277;
         }
+
         .output {
             margin-top: 20px;
             font-size: 45px;
             font-weight: bold;
         }
+
         .logo {
             margin-top: 50px;
             margin-bottom: 50px;
             width: 410px;
         }
+
         a {
             color: #F06277;
             text-decoration: none;
             font-size: 25px;
         }
+
         a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <!-- Logo cargado desde la misma carpeta -->
-    <img src="irreg.logo.svg" alt="Logo IRREGULAR" class="logo">
-    <h1>Conversor Letra / Número</h1>
-    <input type="text" id="input" placeholder="Ej. E+D, ED" oninput="convertInput()">
-    <div class="output" id="output">$0.000</div>
-    <a href="https://linktr.ee/irregular.records" target="_blank" style="display: block; margin-top: 60px;">Visita nuestra web</a>
+    <!-- Fondo tipo Matrix -->
+    <canvas id="matrix"></canvas>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        <img src="irreg.logo.svg" alt="Logo IRREGULAR" class="logo">
+        <h1>Conversor Letra / Número</h1>
+        <input type="text" id="input" placeholder="Ej. E+D, ED" oninput="convertInput()">
+        <div class="output" id="output">$0.000</div>
+        <a href="https://linktr.ee/irregular.records" target="_blank" style="display: block; margin-top: 60px;">Visita nuestra web</a>
+    </div>
 
     <script>
+        // Código para el efecto Matrix
+        const canvas = document.getElementById("matrix");
+        const ctx = canvas.getContext("2d");
+
+        // Ajustar el tamaño del canvas al tamaño de la ventana
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+";
+        const columns = Math.floor(canvas.width / 20); // Número de columnas
+        const drops = [];
+
+        // Inicializar las gotas
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height);
+        }
+
+        function drawMatrix() {
+            // Fondo semi-transparente para el efecto de rastro
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Color y fuente del texto (usando el rosa principal #F06277 con 50% de transparencia)
+            ctx.fillStyle = "rgba(240, 98, 119, 0.5)"; // Rosa del diseño con 50% de transparencia
+            ctx.font = "15px monospace";
+
+            // Dibujar los caracteres
+            for (let i = 0; i < drops.length; i++) {
+                const text = characters[Math.floor(Math.random() * characters.length)];
+                ctx.fillText(text, i * 20, drops[i] * 20);
+
+                // Reiniciar la gota cuando sale de la pantalla
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                // Mover la gota hacia abajo
+                drops[i]++;
+            }
+        }
+
+        // Actualizar el efecto Matrix
+        setInterval(drawMatrix, 50);
+
+        // Código del conversor
         const valores = {
             a: 0.000, b: 0.000, c: 0.000, d: 5.000, e: 6.000, f: 7.000, g: 8.000, h: 9.000, i: 10.000,
             j: 11.000, k: 12.000, l: 13.000, m: 14.000, n: 15.000, o: 16.000, p: 20.000, q: 30.000,
@@ -66,26 +142,21 @@
         };
 
         function convertInput() {
-            setTimeout(() => {  // Retraso de 50ms para asegurar la carga
+            setTimeout(() => {
                 const input = document.getElementById("input").value.trim().toLowerCase();
                 const output = document.getElementById("output");
 
-                // Si el input es un número
                 if (!isNaN(input) && input !== "") {
                     const num = parseFloat(input);
 
-                    // Verificar si el número es entero sin decimales (como 55)
                     if (Number.isInteger(num) && !input.includes(".")) {
-                        // Si es un número como 55000, se divide por 1000 para convertirlo a 55.000
                         const normalizedNum = num / 1000;
                         output.textContent = getLettersFromNumber(normalizedNum);
                     } else {
-                        // Si es un número con decimales (como 55.000), se procesa directamente
                         const normalizedNum = parseFloat(num.toFixed(3));
                         output.textContent = getLettersFromNumber(normalizedNum);
                     }
                 } else {
-                    // Manejo de suma (e+r o er)
                     const sum = input.split(/[+\s]/).reduce((total, part) => {
                         let subtotal = 0.000;
                         for (const char of part) {
@@ -96,21 +167,17 @@
                         return total + subtotal;
                     }, 0.000);
 
-                    // Verifica si el resultado es válido
                     output.textContent = `$${sum.toFixed(3)}`;
                 }
-            }, 50);  // Retraso de 50ms
+            }, 50);
         }
 
-        // Función para obtener las letras a partir de un número
         function getLettersFromNumber(num) {
             let remainingValue = num;
             let result = [];
 
-            // Ordenar las letras por valor descendente
             const sortedValues = Object.entries(valores).sort((a, b) => b[1] - a[1]);
 
-            // Buscar las letras que suman el número
             for (const [letter, value] of sortedValues) {
                 if (remainingValue >= value) {
                     result.push(letter);
@@ -119,13 +186,11 @@
                 if (remainingValue === 0) break;
             }
 
-            // Si el valor restante no es 0, devuelve $0.000
             if (remainingValue !== 0) {
                 return "$0.000";
             }
 
-            // Devuelve la combinación más corta posible, y las letras siempre en mayúsculas
-            return result.join('').toUpperCase();  // Asegura que las letras estén en mayúsculas
+            return result.join('').toUpperCase();
         }
     </script>
 </body>

@@ -49,97 +49,62 @@
     </style>
 </head>
 <body>
-    <!-- Logo cargado desde el archivo SVG en la misma carpeta -->
-    <img src="irregular.logo.svg" alt="Logo IRREGULAR" class="logo">
+    <!-- Logo cargado desde la misma carpeta -->
+    <img src="irreg.logo.svg" alt="Logo IRREGULAR" class="logo">
     <h1>Conversor Letra / Número</h1>
     <input type="text" id="input" placeholder="Ej. E+D, ED" oninput="convertInput()">
-    <div class="output" id="output"></div>
+    <div class="output" id="output">$0.000</div>
     <a href="https://linktr.ee/irregular.records" target="_blank" style="display: block; margin-top: 60px;">Visita nuestra web</a>
 
     <script>
         const valores = {
             a: 0.000, b: 0.000, c: 0.000, d: 5.000, e: 6.000, f: 7.000, g: 8.000, h: 9.000, i: 10.000,
             j: 11.000, k: 12.000, l: 13.000, m: 14.000, n: 15.000, o: 16.000, p: 20.000, q: 30.000,
-            r: 40.000, s: 50.000, t: 60.000, u: 70.000, v: 80.000, w: 90.000, x: 100.000, y: 3.000, z: 4.000
-        };
-
-        // Valores predefinidos para casos específicos
-        const combinacionesPredefinidas = {
-            21.000: "IJ",
-            22.000: "IK",
-            31.000: "PJ",
-            32.000: "PK",
-            41.000: "RJ",
-            42.000: "RK",
-            51.000: "SJ",
-            52.000: "SK",
-            61.000: "TJ",
-            62.000: "TK",
-            71.000: "UJ",
-            72.000: "UK",
-            81.000: "VJ",
-            82.000: "VK",
-            91.000: "WJ",
-            92.000: "WK"
-        };
-
-        window.onload = function() {
-            const output = document.getElementById("output");
-            output.textContent = "$0.000"; // Establecer un valor inicial por defecto al cargar la página
+            r: 40.000, s: 50.000, t: 60.000, u: 70.000, v: 80.000, w: 90.000, x: 100.000, y: 3.000, z: 4.000,
+            IJ: 21.000, IK: 22.000, PJ: 31.000, PK: 32.000, RJ: 41.000, RK: 42.000, SJ: 51.000, SK: 52.000,
+            TJ: 61.000, TK: 62.000, UJ: 71.000, UK: 72.000, VJ: 81.000, VK: 82.000, WJ: 91.000, WK: 92.000
         };
 
         function convertInput() {
-            const input = document.getElementById("input").value.trim().toLowerCase();
-            const output = document.getElementById("output");
+            setTimeout(() => {  // Retraso de 50ms para asegurar la carga
+                const input = document.getElementById("input").value.trim().toLowerCase();
+                const output = document.getElementById("output");
 
-            // Si el input es un número
-            if (!isNaN(input) && input !== "") {
-                const num = parseFloat(input);
+                // Si el input es un número
+                if (!isNaN(input) && input !== "") {
+                    const num = parseFloat(input);
 
-                // Verificar si el número es entero sin decimales (como 55)
-                if (Number.isInteger(num) && !input.includes(".")) {
-                    // Si es 55, no se normaliza
-                    if (num === 55) {
-                        output.textContent = "No es posible";
-                    } else {
+                    // Verificar si el número es entero sin decimales (como 55)
+                    if (Number.isInteger(num) && !input.includes(".")) {
                         // Si es un número como 55000, se divide por 1000 para convertirlo a 55.000
                         const normalizedNum = num / 1000;
                         output.textContent = getLettersFromNumber(normalizedNum);
+                    } else {
+                        // Si es un número con decimales (como 55.000), se procesa directamente
+                        const normalizedNum = parseFloat(num.toFixed(3));
+                        output.textContent = getLettersFromNumber(normalizedNum);
                     }
                 } else {
-                    // Si es un número con decimales (como 55.000), se procesa directamente
-                    const normalizedNum = parseFloat(num.toFixed(3));
-                    output.textContent = getLettersFromNumber(normalizedNum);
-                }
-            } else {
-                // Manejo de suma (e+r o er)
-                const sum = input.split(/[+\s]/).reduce((total, part) => {
-                    let subtotal = 0.000;
-                    for (const char of part) {
-                        if (valores[char] !== undefined) {
-                            subtotal += valores[char];
+                    // Manejo de suma (e+r o er)
+                    const sum = input.split(/[+\s]/).reduce((total, part) => {
+                        let subtotal = 0.000;
+                        for (const char of part) {
+                            if (valores[char] !== undefined) {
+                                subtotal += valores[char];
+                            }
                         }
-                    }
-                    return total + subtotal;
-                }, 0.000);
+                        return total + subtotal;
+                    }, 0.000);
 
-                // Verifica si el resultado es válido
-                output.textContent = `$${sum.toFixed(3) || "Entrada no válida"}`;
-            }
+                    // Verifica si el resultado es válido
+                    output.textContent = `$${sum.toFixed(3)}`;
+                }
+            }, 50);  // Retraso de 50ms
         }
 
         // Función para obtener las letras a partir de un número
         function getLettersFromNumber(num) {
-            // Redondear el número a 3 decimales para evitar problemas de precisión
-            const normalizedNum = parseFloat(num.toFixed(3));
-
-            // Verificar si el número tiene una combinación predefinida
-            if (combinacionesPredefinidas.hasOwnProperty(normalizedNum)) {
-                return combinacionesPredefinidas[normalizedNum];
-            }
-
-            // Si no tiene una combinación predefinida, calcularla dinámicamente
-            let remainingValue = normalizedNum;
+            let remainingValue = num;
             let result = [];
 
             // Ordenar las letras por valor descendente
@@ -147,16 +112,16 @@
 
             // Buscar las letras que suman el número
             for (const [letter, value] of sortedValues) {
-                while (remainingValue >= value) {
+                if (remainingValue >= value) {
                     result.push(letter);
                     remainingValue -= value;
                 }
                 if (remainingValue === 0) break;
             }
 
-            // Si el valor restante no es 0, significa que no se pudo encontrar una combinación exacta
+            // Si el valor restante no es 0, devuelve $0.000
             if (remainingValue !== 0) {
-                return "No es posible";
+                return "$0.000";
             }
 
             // Devuelve la combinación más corta posible, y las letras siempre en mayúsculas
